@@ -1,0 +1,74 @@
+#? stdtmpl
+# var result = ""
+## The header here is for locally testing changes to the template.
+<head>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css" />
+  <script src="https://cdn.jsdelivr.net/npm/unpoly@3.10.2/unpoly.min.js"></script>
+  <script src="https://unpkg.com/frappe-charts@1.2.4/dist/frappe-charts.min.iife.js"></script>
+  <script>
+    window.onload = function() {
+      new frappe.Chart(".chart", {  
+        title: "Regulation size by 10 largest agencies",
+        data: {labels: ["Mercury", "Venus"], datasets: [{values: [100000, 2]}]},
+        type: 'bar',
+      })
+  }
+  </script>
+</head>
+<div class="container">
+#proc agenciesIndex(agencyCounts: seq[AgencyCount]): string =
+<div class="chart" up-data='${agencyCounts.toChart().toJson().escape()}'></div>
+<form action="/" method="get" up-autosubmit up-watch-delay="200" up-target="table,.chart">
+  <fieldset class="grid">
+      <input name="filter" placeholder="Filter" />
+      <select name="sort">
+        <option value="wordsDesc">Words (high to low)</option>
+        <option value="wordsAsc">Words (low to high)</option>
+        <option value="nameAsc">Name (A-Z)</option>
+        <option value="nameDesc">Name (Z-A)</option>
+      </select>
+    </fieldset>
+</form>
+<table class="striped">
+  <thead>
+    <tr>
+      <th scope="col">Agency</th>
+      <th scope="col">Words</th>
+    </tr>
+  </thead>
+  <tbody>
+    #for agency in agencyCounts:
+    <tr>
+      <th scope="row">$agency.name</th>
+      <td>${($agency.count).insertSep(',')}</td>
+    </tr>
+    #end
+  </tbody>
+</table>
+#end
+#proc render(content: string): string =
+<!DOCTYPE html>
+<html data-theme="light">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/unpoly@3.10.2/unpoly.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/unpoly@3.10.2/unpoly.min.css" />
+    <script src="https://unpkg.com/frappe-charts@1.2.4/dist/frappe-charts.min.iife.js"></script>
+    
+    <title>Federal Regulation Dashboard</title>
+    <script>
+      up.form.config.submitSelectors.push(['form']);
+      up.link.config.followSelectors.push('a[href]');
+      up.compiler('div.chart', (el, data) => new frappe.Chart(el, data));
+    </script>
+  </head>
+  <body>
+    <main class="container">
+      <h1>Federal Regulation Dashboard</h1>
+      $content
+    </main>
+  </body>
+</html>
+#end
